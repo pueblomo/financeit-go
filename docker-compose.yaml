@@ -1,0 +1,17 @@
+version: "3.3"
+
+services:
+  backend:
+    image: my-go-server
+    ports:
+      - "3000:80"
+    depends_on:
+      - db
+
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: example
