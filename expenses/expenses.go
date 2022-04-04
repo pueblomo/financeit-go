@@ -3,6 +3,7 @@ package expenses
 import (
 	"context"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -61,8 +62,14 @@ func GetExpenses(ctx *fiber.Ctx) error {
 	}
 
 	log.Printf("Get Expenses with id: %v", id)
+	t := time.Now()
+	firstday := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.Local)
+	lastday := firstday.AddDate(0, 1, 0).Add(time.Nanosecond * -1)
 
-	rows, err := database.Conn.Query(context.Background(), "SELECT * FROM expense WHERE categoryId = $1 order by date", id)
+	firstdaySplit := strings.Split(firstday.String(), " ")
+	lastdaySplit := strings.Split(lastday.String(), " ")
+
+	rows, err := database.Conn.Query(context.Background(), "SELECT * FROM expense WHERE categoryId = $1 and date >= $2 and date <= $3 order by date desc", id, firstdaySplit[0] + " " + firstdaySplit[1], lastdaySplit[0] + " " + lastdaySplit[1])
 	defer rows.Close()
 	conf.CheckError(err)
 
