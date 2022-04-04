@@ -6,6 +6,7 @@ func InitEnv() {
 	viper.SetConfigFile(".env")
 	err := viper.ReadInConfig()
 	CheckError(err)
+	viper.AutomaticEnv()
 }
 
 func GetDBPw() string {
