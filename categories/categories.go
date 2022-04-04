@@ -7,16 +7,19 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v4"
 	"main.go/conf"
 	"main.go/database"
 )
 
+var validate = validator.New()
+
 type Category struct {
 	Id int64 `json:"id"`
-	Name string `json:"name"`
-	Icon string `json:"icon"`
+	Name string `json:"name" validate:"required,max=60"`
+	Icon string `json:"icon" validate:"required,max=20"`
 	Amount int64 `json:"amount"`
 }
 
@@ -34,7 +37,7 @@ func getCategoriesFromRows(rows pgx.Rows) []Category {
 
 func GetCategories(ctx *fiber.Ctx) error{
 	log.Println("Get Categories")
-	rows, err := database.Conn.Query(context.Background(),"SELECT * FROM category")
+	rows, err := database.Conn.Query(context.Background(),"SELECT * FROM category order by name")
 	defer rows.Close()
 	conf.CheckError(err)
 
@@ -42,10 +45,16 @@ func GetCategories(ctx *fiber.Ctx) error{
 }
 
 func PostCategorie(ctx *fiber.Ctx) error {
+	ctx.Accepts("application/json")
 	var newCat Category
+	log.Println("Post category")
 	if err:= ctx.BodyParser(&newCat); err != nil {
 		log.Println(err)
-		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return ctx.SendStatus(fiber.StatusInternalServerError)
+	}
+	if err:= validate.Struct(newCat); err != nil {
+		log.Println(err)
+		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 	log.Printf("Post Categorie : %v\n", newCat)
 
