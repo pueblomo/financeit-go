@@ -5,6 +5,9 @@ services:
     image: my-go-server
     ports:
       - "3000:80"
+    environment:
+      - DBURL=db
+      - DBPASSWORD=example
     depends_on:
       - db
 

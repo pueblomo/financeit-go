@@ -5,13 +5,13 @@ import "github.com/spf13/viper"
 func InitEnv() {
 	viper.SetConfigFile(".env")
 	err := viper.ReadInConfig()
-	CheckErrorFatal(err)
-}
-
-func GetDBUser() string {
-	return viper.GetString("DBUSER")
+	CheckError(err)
 }
 
 func GetDBPw() string {
 	return viper.GetString("DBPASSWORD")
+}
+
+func GetDBUrl() string {
+	return viper.GetString("DBURL")
 }

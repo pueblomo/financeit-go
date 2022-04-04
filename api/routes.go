@@ -25,6 +25,10 @@ func initCatRoutes(grp fiber.Router) {
 }
 
 func initExpRoutes(grp fiber.Router) {
+	grp.Get("/:catId", func (c *fiber.Ctx) error {
+		return expenses.GetExpenses(c)
+	})
+
 	grp.Post("/", func (c * fiber.Ctx) error {
 		return expenses.PostExpense(c)
 	})
