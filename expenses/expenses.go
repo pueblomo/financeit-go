@@ -8,20 +8,14 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v4"
+	"main.go/aggregates"
 	"main.go/conf"
 	"main.go/database"
+	"main.go/model"
 )
 
-type Expense  struct {
-	Id int64 `json:"id"`
-	Date time.Time `json:"date" validate:"required"`
-	Description string `json:"description" validate:"required,max=60"`
-	Price int `json:"price" validate:"required,number,min=0"`
-	CategoryId int64 `json:"categoryId" validate:"required,min=0"`
-}
-
-func getExpensesFromRows(rows pgx.Rows) []Expense {
-	var expenses []Expense
+func getExpensesFromRows(rows pgx.Rows) []model.Expense {
+	var expenses []model.Expense 
 	for rows.Next() {
 		var id int64
 		var date time.Time
@@ -29,14 +23,14 @@ func getExpensesFromRows(rows pgx.Rows) []Expense {
 		var price int
 		var catId int64
 		rows.Scan(&id, &desc, &date, &price, &catId)
-		expenses = append(expenses, Expense{id, date,desc,price,catId})
+		expenses = append(expenses, model.Expense{id, date,desc,price,catId})
 	}
 	return expenses
 }
 
 func PostExpense(ctx *fiber.Ctx) error {
 	ctx.Accepts("application/json")
-	var newExp Expense
+	var newExp model.Expense
 	if err:=ctx.BodyParser(&newExp); err!=nil {
 		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
@@ -49,6 +43,8 @@ func PostExpense(ctx *fiber.Ctx) error {
 		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
+
+	go aggregates.SendExpense(newExp)
 
 	return ctx.SendStatus(fiber.StatusCreated)
 }

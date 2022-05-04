@@ -8,6 +8,7 @@ import (
 	"main.go/api"
 	"main.go/conf"
 	"main.go/database"
+	"main.go/sheduledTask"
 )
 
 func main(){
@@ -19,7 +20,18 @@ func main(){
 
 	api.InitRoutes(app)
 
-	log.Println(time.Now())
+	ticker := startSheduledTask()
+	defer ticker.Stop()
 
 	log.Fatalln(app.Listen(":8080"))
+}
+
+func startSheduledTask() *time.Ticker{
+	ticker := time.NewTicker(8 * time.Hour)
+	go func() {
+    	for range ticker.C {
+        	sheduledTask.SendToAggregator()
+    	}
+	}()
+	return ticker
 }

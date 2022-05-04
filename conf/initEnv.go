@@ -16,3 +16,7 @@ func GetDBPw() string {
 func GetDBUrl() string {
 	return viper.GetString("DBURL")
 }
+
+func GetAggregatorUrl() string {
+	return viper.GetString("AGGREGATORURL")
+}
