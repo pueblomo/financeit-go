@@ -10,27 +10,22 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v4"
+	"main.go/aggregates"
 	"main.go/conf"
 	"main.go/database"
+	"main.go/model"
 )
 
 var validate = validator.New()
 
-type Category struct {
-	Id int64 `json:"id"`
-	Name string `json:"name" validate:"required,max=60"`
-	Icon string `json:"icon" validate:"required,max=20"`
-	Amount int64 `json:"amount"`
-}
-
-func getCategoriesFromRows(rows pgx.Rows) []Category {
-	var categories []Category
+func getCategoriesFromRows(rows pgx.Rows) []model.Category {
+	var categories []model.Category 
 	for rows.Next() {
 		var id int64
 		var name string
 		var icon string
 		rows.Scan(&id, &name, &icon)
-		categories = append(categories, Category{id,name,icon, int64(getAmount(id))})
+		categories = append(categories, model.Category {id,name,icon, int64(getAmount(id))})
 	}
 	return categories
 }
@@ -46,7 +41,7 @@ func GetCategories(ctx *fiber.Ctx) error{
 
 func PostCategorie(ctx *fiber.Ctx) error {
 	ctx.Accepts("application/json")
-	var newCat Category
+	var newCat model.Category 
 	log.Println("Post category")
 	if err:= ctx.BodyParser(&newCat); err != nil {
 		log.Println(err)
@@ -56,13 +51,15 @@ func PostCategorie(ctx *fiber.Ctx) error {
 		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
-	log.Printf("Post Categorie : %v\n", newCat)
+	log.Printf("Post Category : %v\n", newCat)
 
 	_, err := database.Conn.Exec(context.Background(),"INSERT INTO category (name, icon) VALUES ($1, $2)", newCat.Name, newCat.Icon)
 	if err != nil {
 		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
+
+	go aggregates.SendCategory(newCat)
 
 	return ctx.SendStatus(fiber.StatusCreated)
 }
