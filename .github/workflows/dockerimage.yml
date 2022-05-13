@@ -9,14 +9,16 @@ jobs:
       DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/financeit-go
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      DOCKER_TARGET_PLATFORM: linux/arm/v7
+      DOCKER_TARGET_PLATFORM: linux/arm/v7,linux/amd64,linux/arm64
     steps:
       - name: Checkout the code
         uses: actions/checkout@v1
+       # https://github.com/docker/setup-qemu-action
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      # https://github.com/docker/setup-buildx-action
       - name: Set up Docker Buildx
-        uses: crazy-max/ghaction-docker-buildx@v1
-        with:
-          version: latest
+        uses: docker/setup-buildx-action@v1
       - name: Prepare
         if: success()
         id: prepare
